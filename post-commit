@@ -1,0 +1,24 @@
+#!/bin/sh
+
+# changelog file (must be kept synchronized with the CHANGELOG_FILE in the post-commit hook script)
+CHANGELOG_FILE="CHANGELOG.md"
+
+# important!
+# check wether the output file was included in the last commit to exit and prevent recursion
+skip=$(git log -1 HEAD --name-only | grep -c "$CHANGELOG_FILE")
+if [ "$skip" -gt 0 ]
+then
+    exit 0
+fi
+
+# JSON-like format for git log
+FORMAT='{"commit_hash": "%H", "refs": "%D", "subject": "%s", "sanitized_subject_line": "%f", "body": "%b", "author": {"name": "%aN", "email": "%aE", "date": "%aI"}, "commiter": {"name": "%cN", "email": "%cE", "date": "%cI"} }'
+# get last commit, parse it to json and escape new lines
+COMMIT="[$(git --no-pager log -1 HEAD --no-merges --format="$FORMAT" | sed -r ':a;N;$!ba;s/\r{0,1}\n/\\n/g' | sed 's/}\\n{/},{/g')]"
+# execute the python script in the background and wait for it to terminate
+python ./.git/hooks/git_changelog_hook.py --commit "$COMMIT" &
+wait %1
+
+# amend the changelog file to the last commit
+git add $CHANGELOG_FILE
+git commit --amend --no-edit

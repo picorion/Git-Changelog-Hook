@@ -1,0 +1,10 @@
+# ignore everything
+*
+
+# except
+!.gitignore
+!README.md
+!post-commit
+!git_changelog_hook.py
+!tryout.ipynb
+!CHANGELOG.md
