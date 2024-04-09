@@ -3,8 +3,7 @@ import json
 import re
 import os.path
 
-# must be kept synchronized with the CHANGELOG_FILE in the post-commit hook script
-CHANGELOG_FILE = "CHANGELOG.md"
+# --- default notice and regex patterns ---
 
 NOTICE = """All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)."""
@@ -18,7 +17,9 @@ CHANGE_TYPES = {
     "Security": "Security"
 }
 
-CHANGELOG_INDICATOR = "((Changelog)|(Changes)):.*"
+CHANGELOG_INDICATOR = "((Changelog)|(Change(s)?)):.*"
+
+# --- node class for tree representation and functions ---
 
 class Node:
     """Represents a parsed markdown header with related text as content and sub-headers as children."""
@@ -156,19 +157,24 @@ def traverse_commit_body(commit_body, changelog):
             interesting = True
 
 
-# --- 
+# --- main ---
 
 def main():
     # parse arguments
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--commits", dest="commits", type=json.loads, required=True,
                         help="Commit(s) from git log in JSON format.")
+    parser.add_argument("-t", "--target", dest="target", type=str, required=True,
+                        help="Target file for storing the changelog.")
     args = parser.parse_args()
+
+    # set the target file for storing the changelog
+    changelog_file = args.target
     
     # get existing changelog from file or create one
     changelog = None
-    if os.path.isfile(CHANGELOG_FILE):
-        changelog = parse_changelog(CHANGELOG_FILE)
+    if os.path.isfile(changelog_file):
+        changelog = parse_changelog(changelog_file)
     else:
         changelog = setup_changelog()
 
@@ -177,7 +183,7 @@ def main():
         body = commit["body"]
         traverse_commit_body(body, changelog)
     
-    write_changelog(changelog, CHANGELOG_FILE)
+    write_changelog(changelog, changelog_file)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# changelog file (must be kept synchronized with the CHANGELOG_FILE in the post-commit hook script)
+# target file for storing the changelog
 CHANGELOG_FILE="CHANGELOG.md"
 
 # use an environment variable to check wether the hook has already been executed to prevent recursion!
@@ -17,7 +17,7 @@ FORMAT='{"commit_hash": "%H", "refs": "%D", "subject": "%s", "sanitized_subject_
 # get last commit, parse it to json and escape new lines
 COMMIT="[$(git --no-pager log -1 HEAD --no-merges --format="$FORMAT" | sed -r ':a;N;$!ba;s/\r{0,1}\n/\\n/g' | sed 's/}\\n{/},{/g')]"
 # execute the python script in the background and wait for it to terminate
-python ./.git/hooks/git_changelog_hook.py --commit "$COMMIT" &
+python ./.git/hooks/git_changelog_hook.py --commit "$COMMIT" --target "$CHANGELOG_FILE" &
 wait %1
 
 # amend the changelog file to the last commit
