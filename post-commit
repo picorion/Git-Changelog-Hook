@@ -3,11 +3,12 @@
 # changelog file (must be kept synchronized with the CHANGELOG_FILE in the post-commit hook script)
 CHANGELOG_FILE="CHANGELOG.md"
 
-# important!
-# check wether the output file was included in the last commit to exit and prevent recursion
-skip=$(git log -1 HEAD --name-only | grep -c "$CHANGELOG_FILE")
-if [ "$skip" -gt 0 ]
+# use an environment variable to check wether the hook has already been executed to prevent recursion!
+if [ -z "$ALREADY_RUN"]
 then
+    export ALREADY_RUN=1
+else
+    unset ALREADY_RUN
     exit 0
 fi
 
