@@ -65,7 +65,7 @@ The hook recognizes the following predefined types of changes in the listed vari
 *Changes that cannot be mapped are summarized as **Other**.*
 
 
-### Create a changelog from multiple commits
+### Create a Changelog from Multiple Commits
 
 Processing multiple commits is not supported by the post-commit hook.
 If desired, manually fetch the log for the commits and call the Python script using the following bash commands.
@@ -76,6 +76,18 @@ FORMAT='{"commit_hash": "%H", "refs": "%D", "subject": "%s", "sanitized_subject_
 COMMITS="[$(git --no-pager log -1 HEAD --no-merges --format="$FORMAT" | sed -r ':a;N;$!ba;s/\r{0,1}\n/\\n/g' | sed 's/}\\n{/},{/g')]"
 
 python ./.git/hooks/git_changelog_hook.py --commit "$COMMITS"
+```
+
+
+### Append Additional Information to Changelog Entries
+
+Optionally, additional details can be attached to the changelog entries.
+To enable/disable or customize this, take a look at the global variables introduced in the Python script.
+
+```md
+### [Added]
+- Added something ~ user (2024-01-02)
+- Created another thing ~ user (2024-01-01)
 ```
 
 

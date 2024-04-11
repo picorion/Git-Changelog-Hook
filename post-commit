@@ -13,7 +13,7 @@ else
 fi
 
 # JSON-like format for git log
-FORMAT='{"commit_hash": "%H", "refs": "%D", "subject": "%s", "sanitized_subject_line": "%f", "body": "%b", "author": {"name": "%aN", "email": "%aE", "date": "%aI"}, "commiter": {"name": "%cN", "email": "%cE", "date": "%cI"} }'
+FORMAT='{"commit_hash": "%H", "short_hash": "%h", "refs": "%D", "subject": "%s", "sanitized_subject_line": "%f", "body": "%b", "author": {"name": "%aN", "email": "%aE", "date": "%aI"}, "commiter": {"name": "%cN", "email": "%cE", "date": "%cI"} }'
 # get last commit, parse it to json and escape new lines
 COMMIT="[$(git --no-pager log -1 HEAD --no-merges --format="$FORMAT" | sed -r ':a;N;$!ba;s/\r{0,1}\n/\\n/g' | sed 's/}\\n{/},{/g')]"
 # execute the python script in the background and wait for it to terminate

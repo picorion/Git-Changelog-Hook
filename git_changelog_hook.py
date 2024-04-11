@@ -2,6 +2,7 @@ import argparse
 import json
 import re
 import os.path
+from datetime import datetime as dt
 
 # --- default notice and regex patterns ---
 
@@ -18,6 +19,12 @@ CHANGE_TYPES = {
 }
 
 CHANGELOG_INDICATOR = "((Changelog)|(Change(s)?)):.*"
+
+TIMESTAMP_FORMAT = "%Y-%m-%d"
+
+# appends additional details to the changelog entries
+SHOW_ADDITIONAL_INFO = True
+ADDITIONAL_INFO = " ~ {author} ({timestamp})"
 
 # --- node class for tree representation and functions ---
 
@@ -130,11 +137,12 @@ def find_section_node(parent_node, section_name, section_level) -> Node | None:
     return None
 
 
-def traverse_commit_body(commit_body, changelog):
+def traverse_commit(commit, changelog):
     """Walks through the commit body and adds the contained changes to the changelog."""
+    body = commit["body"]
     interesting = False
     # iterate over lines in commit body
-    for line in commit_body.split("\n"):
+    for line in body.split("\n"):
         if interesting and line.startswith(("- ", "* ")):
             # follows the changelog indicator and is a bullet point (- or *)
             change_type = "Other"
@@ -147,6 +155,12 @@ def traverse_commit_body(commit_body, changelog):
             match = re.search("(-|\*) +(\[.*\] +)?", line)
             if match:
                 message = line[match.end():]
+                # optionally append additional details to changelog entry
+                if SHOW_ADDITIONAL_INFO:
+                    message += ADDITIONAL_INFO.format(
+                        author = commit["author"]["name"],
+                        timestamp = dt.fromisoformat(commit["author"]["date"]).strftime(TIMESTAMP_FORMAT)
+                    )
                 # add change to changelog
                 add_change(changelog, change_type, message)
         else:
@@ -180,8 +194,7 @@ def main():
 
     # iterate over commits, traverse commit body and add changes
     for commit in args.commits:
-        body = commit["body"]
-        traverse_commit_body(body, changelog)
+        traverse_commit(commit, changelog)
     
     write_changelog(changelog, changelog_file)
 
